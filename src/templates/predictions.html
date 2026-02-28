@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédictions ML - Surveillance Pression Artérielle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --medical-red: #dc2626;
+            --medical-red-gradient: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            --medical-red-light: #fee2e2;
+            --medical-green: #16a34a;
+            --medical-green-gradient: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            --medical-green-light: #dcfce7;
+            --medical-orange: #ea580c;
+            --medical-orange-gradient: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            --medical-orange-light: #ffedd5;
+            --medical-blue: #0284c7;
+            --medical-blue-gradient: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            --medical-blue-light: #e0f2fe;
+            --medical-purple: #7c3aed;
+            --medical-purple-gradient: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            --medical-bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            --medical-border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --white: #ffffff;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--medical-bg);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            padding: 24px;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: var(--white);
+            padding: 32px 48px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 32px;
+            border: 1px solid var(--medical-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--medical-purple-gradient);
+        }
+        
+        h1 {
+            background: var(--medical-purple-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .nav-link {
+            padding: 10px 20px;
+            background: var(--medical-blue-gradient);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--medical-border);
+            transition: var(--transition);
+        }
+        
+        .stat-card:hover {
+            box-shadow: var(--card-shadow-hover);
+            transform: translateY(-4px);
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .stat-card.total .stat-value { color: var(--medical-blue); }
+        .stat-card.high-risk .stat-value { color: var(--medical-red); }
+        .stat-card.medium-risk .stat-value { color: var(--medical-orange); }
+        .stat-card.low-risk .stat-value { color: var(--medical-green); }
+        .stat-card.alerts .stat-value { color: var(--medical-red); }
+        
+        .filters-section {
+            background: var(--white);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 32px;
+            border: 1px solid var(--medical-border);
+        }
+        
+        .filters-section h2 {
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 16px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .filter-item select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--medical-border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .filter-item select:focus {
+            outline: none;
+            border-color: var(--medical-purple);
+        }
+        
+        .btn-filter {
+            padding: 12px 24px;
+            background: var(--medical-purple-gradient);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        
+        .alerts-section {
+            background: var(--white);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 32px;
+            border: 1px solid var(--medical-border);
+        }
+        
+        .alerts-section h2 {
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--medical-red);
+        }
+        
+        .alert-item {
+            padding: 20px;
+            border-left: 4px solid var(--medical-red);
+            background: var(--medical-red-light);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .alert-item.high {
+            border-left-color: var(--medical-orange);
+            background: var(--medical-orange-light);
+        }
+        
+        .alert-info {
+            flex: 1;
+        }
+        
+        .alert-patient {
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-bottom: 8px;
+        }
+        
+        .alert-details {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .alert-risk {
+            text-align: right;
+        }
+        
+        .risk-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+        
+        .risk-badge.critical {
+            background: var(--medical-red);
+            color: var(--white);
+        }
+        
+        .risk-badge.high {
+            background: var(--medical-orange);
+            color: var(--white);
+        }
+        
+        .predictions-table {
+            background: var(--white);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--medical-border);
+            overflow-x: auto;
+        }
+        
+        .predictions-table h2 {
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--medical-border);
+        }
+        
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+        
+        tr:hover {
+            background: var(--medical-blue-light);
+        }
+        
+        .risk-probability {
+            font-weight: 700;
+        }
+        
+        .risk-probability.low { color: var(--medical-green); }
+        .risk-probability.medium { color: var(--medical-orange); }
+        .risk-probability.high { color: var(--medical-red); }
+        
+        .empty-state {
+            text-align: center;
+            padding: 64px;
+            color: var(--text-secondary);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: var(--white);
+            padding: 20px 24px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow-hover);
+            border-left: 4px solid var(--medical-red);
+            z-index: 1000;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--medical-red);
+        }
+        
+        .notification-message {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Prédictions ML - Risque de Crise Hypertensive</h1>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Dashboard Principal</a>
+            </div>
+        </header>
+        
+        <div class="info-section" style="background: var(--white); padding: 32px; border-radius: var(--border-radius); box-shadow: var(--card-shadow); margin-bottom: 32px; border: 1px solid var(--medical-border);">
+            <h2 style="margin-bottom: 24px; font-size: 1.5rem; font-weight: 700; color: var(--medical-purple);">Guide des Prédictions ML</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                <div>
+                    <h3 style="color: var(--medical-red); margin-bottom: 12px; font-size: 1.125rem; font-weight: 700;">Risque 1h</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.6;">
+                        Probabilité (0-100%) qu'une <strong>crise hypertensive</strong> survienne dans la prochaine <strong>1 heure</strong>. 
+                        Une crise hypertensive est définie par une pression artérielle > 180/120 mmHg.
+                    </p>
+                </div>
+                <div>
+                    <h3 style="color: var(--medical-orange); margin-bottom: 12px; font-size: 1.125rem; font-weight: 700;">Risque 6h</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.6;">
+                        Probabilité (0-100%) qu'une <strong>crise hypertensive</strong> survienne dans les prochaines <strong>6 heures</strong>. 
+                        C'est l'indicateur principal utilisé pour déterminer le niveau d'alerte.
+                    </p>
+                </div>
+                <div>
+                    <h3 style="color: var(--medical-blue); margin-bottom: 12px; font-size: 1.125rem; font-weight: 700;">Risque 24h</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.6;">
+                        Probabilité (0-100%) qu'une <strong>crise hypertensive</strong> survienne dans les prochaines <strong>24 heures</strong>. 
+                        Permet d'anticiper les risques à moyen terme.
+                    </p>
+                </div>
+                <div>
+                    <h3 style="color: var(--medical-red); margin-bottom: 12px; font-size: 1.125rem; font-weight: 700;">Niveau d'Alerte</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.6;">
+                        Niveau de priorité basé sur le <strong>Risque 6h</strong>:
+                        <br>• <strong>CRITICAL</strong>: ≥ 60% - Intervention immédiate
+                        <br>• <strong>HIGH</strong>: ≥ 40% - Surveillance renforcée
+                        <br>• <strong>MEDIUM</strong>: ≥ 20% - Surveillance normale
+                        <br>• <strong>LOW</strong>: &lt; 20% - Surveillance standard
+                    </p>
+                </div>
+                <div>
+                    <h3 style="color: var(--text-primary); margin-bottom: 12px; font-size: 1.125rem; font-weight: 700;">Observations Utilisées</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.6;">
+                        Le modèle utilise les <strong>30 dernières observations</strong> du patient (environ 7.5 heures d'historique) 
+                        pour faire ses prédictions. Chaque observation contient: pression systolique, pression diastolique, 
+                        rythme cardiaque et heure du jour.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-label">Total Patients</div>
+                <div class="stat-value" id="stat-total">0</div>
+            </div>
+            <div class="stat-card alerts">
+                <div class="stat-label">Alertes</div>
+                <div class="stat-value" id="stat-alerts">0</div>
+            </div>
+        </div>
+        
+        <div class="filters-section">
+            <h2>Filtres</h2>
+            <div class="filter-group">
+                <div class="filter-item">
+                    <label for="patient-filter">Patient</label>
+                    <select id="patient-filter">
+                        <option value="">Tous les patients</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <button class="btn-filter" onclick="applyFilters()">Appliquer</button>
+                </div>
+                <div class="filter-item">
+                    <button class="btn-filter" onclick="clearFilters()" style="background: var(--medical-red-gradient);">Réinitialiser</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alerts-section" id="alerts-section" style="display: none;">
+            <h2>Alertes</h2>
+            <div id="alerts-container"></div>
+        </div>
+        
+        <div class="predictions-table">
+            <h2>Prédictions par Patient</h2>
+            <div id="predictions-container">
+                <div class="empty-state">
+                    <p>Chargement des prédictions...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let allPatients = [];
+        let currentPredictions = [];
+        
+        function updatePatientFilter(patients) {
+            const select = document.getElementById('patient-filter');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">Tous les patients</option>';
+            
+            patients.forEach(patient => {
+                if (patient) {
+                    const option = document.createElement('option');
+                    option.value = patient;
+                    option.textContent = patient;
+                    select.appendChild(option);
+                }
+            });
+            
+            if (currentValue && patients.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+        
+        function applyFilters() {
+            fetchPredictions();
+        }
+        
+        function clearFilters() {
+            document.getElementById('patient-filter').value = '';
+            fetchPredictions();
+        }
+        
+        function getRiskClass(probability) {
+            if (probability >= 0.60) return 'high';
+            if (probability >= 0.40) return 'medium';
+            return 'low';
+        }
+        
+        
+        function renderPredictions(predictions) {
+            const container = document.getElementById('predictions-container');
+            
+            if (predictions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>Aucune prédiction disponible</p></div>';
+                return;
+            }
+            
+            let html = '<table><thead><tr>';
+            html += '<th>Patient</th>';
+            html += '<th>Risque 1h</th>';
+            html += '<th>Risque 6h</th>';
+            html += '<th>Risque 24h</th>';
+            html += '<th>Niveau Alerte</th>';
+            html += '<th>Observations</th>';
+            html += '</tr></thead><tbody>';
+            
+            predictions.forEach(pred => {
+                html += '<tr>';
+                html += `<td><strong>${pred.patient_id}</strong></td>`;
+                html += `<td><span class="risk-probability ${getRiskClass(pred.critical_risk_1h)}">${(pred.critical_risk_1h * 100).toFixed(1)}%</span></td>`;
+                html += `<td><span class="risk-probability ${getRiskClass(pred.critical_risk_6h)}">${(pred.critical_risk_6h * 100).toFixed(1)}%</span></td>`;
+                html += `<td><span class="risk-probability ${getRiskClass(pred.critical_risk_24h)}">${(pred.critical_risk_24h * 100).toFixed(1)}%</span></td>`;
+                html += `<td><span class="risk-badge ${pred.alert_level}">${pred.alert_level.toUpperCase()}</span></td>`;
+                html += `<td>${pred.observations_count}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function renderAlerts(alerts) {
+            const container = document.getElementById('alerts-container');
+            const section = document.getElementById('alerts-section');
+            
+            if (alerts.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            section.style.display = 'block';
+            
+            let html = '';
+            alerts.forEach(alert => {
+                html += '<div class="alert-item ' + alert.alert_level + '">';
+                html += '<div class="alert-info">';
+                html += `<div class="alert-patient">${alert.patient_id}</div>`;
+                html += `<div class="alert-details">`;
+                html += `Risque 6h: ${(alert.critical_risk_6h * 100).toFixed(1)}% | `;
+                html += `Risque 24h: ${(alert.critical_risk_24h * 100).toFixed(1)}%`;
+                html += `</div>`;
+                html += '</div>';
+                html += `<div class="alert-risk">`;
+                html += `<span class="risk-badge ${alert.alert_level}">${alert.alert_level.toUpperCase()}</span>`;
+                html += `</div>`;
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function updateStatistics(stats) {
+            document.getElementById('stat-total').textContent = stats.total_patients || 0;
+            document.getElementById('stat-alerts').textContent = stats.critical_alerts || 0;
+        }
+        
+        function showNotification(alert) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <div class="notification-title">ALERTE: ${alert.patient_id}</div>
+                <div class="notification-message">Risque critique détecté: ${(alert.critical_risk_6h * 100).toFixed(1)}% dans les 6h</div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+        
+        async function fetchPredictions() {
+            try {
+                const patientId = document.getElementById('patient-filter').value;
+                const url = patientId ? `/api/predictions?patient_id=${patientId}` : '/api/predictions';
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('predictions-container').innerHTML = 
+                        `<div class="empty-state"><p>${data.error}</p></div>`;
+                    return;
+                }
+                
+                currentPredictions = data.predictions || [];
+                
+                if (data.statistics) {
+                    updateStatistics(data.statistics);
+                }
+                
+                renderPredictions(currentPredictions);
+                
+                // Récupérer les alertes
+                const alertsResponse = await fetch('/api/alerts');
+                const alertsData = await alertsResponse.json();
+                const alerts = alertsData.alerts || [];
+                
+                renderAlerts(alerts);
+                
+                // Afficher les notifications pour les nouvelles alertes critiques
+                alerts.filter(a => a.alert_level === 'critical').forEach(alert => {
+                    showNotification(alert);
+                });
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                document.getElementById('predictions-container').innerHTML = 
+                    '<div class="empty-state"><p>Erreur lors du chargement des prédictions</p></div>';
+            }
+        }
+        
+        async function loadPatients() {
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+                if (data.all_patients) {
+                    allPatients = data.all_patients;
+                    updatePatientFilter(allPatients);
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement des patients:', error);
+            }
+        }
+        
+        // Charger les données initiales
+        loadPatients();
+        fetchPredictions();
+        
+        // Actualiser toutes les 10 secondes
+        setInterval(() => {
+            fetchPredictions();
+        }, 10000);
+    </script>
+</body>
+</html>

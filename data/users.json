@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "email": "khoubeib@gmail.com",
+      "username": "khoubeib",
+      "password_hash": "$2b$12$iVwfMbyvn82vzgpkCMjQAOfP5c1wKZ1GLr.KuW.7X9TMnm.6nAjjy",
+      "role": "admin"
+    },
+    {
+      "email": "tasnime@gmail.com",
+      "username": "tasnime",
+      "password_hash": "$2b$12$rz3ybAyeZfjl4bDW1JnbMO4jHFIbhdBwe3CM1F8VkpNONchc0Wk.C",
+      "role": "user"
+    },
+    {
+      "email": "jinene@gmail.com",
+      "username": "jinene",
+      "password_hash": "$2b$12$7hXIoCYX/raKtA7A11tBF.RHiQlPfCS3cql.wxDXUGraYFH0Ewuu.",
+      "role": "user"
+    }
+  ]
+}

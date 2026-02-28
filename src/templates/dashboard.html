@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Surveillance Pression Artérielle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --medical-red: #dc2626;
+            --medical-red-gradient: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            --medical-red-light: #fee2e2;
+            --medical-green: #16a34a;
+            --medical-green-gradient: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            --medical-green-light: #dcfce7;
+            --medical-orange: #ea580c;
+            --medical-orange-gradient: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            --medical-orange-light: #ffedd5;
+            --medical-blue: #0284c7;
+            --medical-blue-gradient: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            --medical-blue-light: #e0f2fe;
+            --medical-purple: #7c3aed;
+            --medical-purple-gradient: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            --medical-bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            --medical-border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --white: #ffffff;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --card-shadow-elevated: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--medical-bg);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            padding: 24px;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: var(--white);
+            padding: 32px 48px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow-elevated);
+            margin-bottom: 32px;
+            border: 1px solid var(--medical-border);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--medical-red-gradient);
+        }
+        
+        .header-content {
+            flex: 1;
+            text-align: center;
+        }
+        
+        h1 {
+            background: var(--medical-red-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0;
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            position: relative;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .user-email {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            font-weight: 500;
+        }
+        
+        .btn-logout {
+            padding: 10px 20px;
+            background: var(--medical-red-gradient);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+        
+        .btn-logout:active {
+            transform: translateY(0);
+        }
+        
+        .filters-section {
+            background: var(--white);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 32px;
+            border: 1px solid var(--medical-border);
+        }
+        
+        .filters-section h2 {
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--medical-border);
+            padding-bottom: 16px;
+            position: relative;
+        }
+        
+        .filters-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: var(--medical-blue-gradient);
+        }
+        
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-group label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .filter-group input,
+        .filter-group select {
+            padding: 14px 18px;
+            border: 2px solid var(--medical-border);
+            border-radius: 12px;
+            font-size: 0.9375rem;
+            transition: var(--transition);
+            background: var(--white);
+            color: var(--text-primary);
+        }
+        
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--medical-blue);
+            box-shadow: 0 0 0 4px var(--medical-blue-light);
+            transform: translateY(-2px);
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-primary {
+            background: var(--medical-blue-gradient);
+            color: var(--white);
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--white);
+            color: var(--text-primary);
+            border: 2px solid var(--medical-border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--medical-bg);
+            border-color: var(--medical-blue);
+            transform: translateY(-2px);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            transition: box-shadow 0.2s ease;
+            border: 1px solid var(--medical-border);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--medical-blue-gradient);
+        }
+        
+        .stat-card:hover {
+            box-shadow: var(--card-shadow-hover);
+        }
+        
+        .stat-card.total {
+            border-top: 5px solid transparent;
+            border-image: var(--medical-blue-gradient) 1;
+        }
+        
+        .stat-card.total::before {
+            background: var(--medical-blue-gradient);
+        }
+        
+        .stat-card.avg {
+            border-top: 5px solid transparent;
+            border-image: var(--medical-purple-gradient) 1;
+        }
+        
+        .stat-card.avg::before {
+            background: var(--medical-purple-gradient);
+        }
+        
+        .stat-card.normal {
+            border-top: 5px solid transparent;
+            border-image: var(--medical-green-gradient) 1;
+        }
+        
+        .stat-card.normal::before {
+            background: var(--medical-green-gradient);
+        }
+        
+        .stat-card.hypertension {
+            border-top: 5px solid transparent;
+            border-image: var(--medical-red-gradient) 1;
+        }
+        
+        .stat-card.hypertension::before {
+            background: var(--medical-red-gradient);
+        }
+        
+        .stat-card h3 {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+        }
+        
+        .stat-card .value {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-card.total .value {
+            background: var(--medical-blue-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-card.avg .value {
+            background: var(--medical-purple-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-card.normal .value {
+            background: var(--medical-green-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-card.hypertension .value {
+            background: var(--medical-red-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-card .unit {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        .data-section {
+            background: var(--white);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 32px;
+            border: 1px solid var(--medical-border);
+        }
+        
+        .data-section h2 {
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--medical-border);
+            padding-bottom: 16px;
+            position: relative;
+        }
+        
+        .data-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background: var(--medical-red-gradient);
+        }
+        
+        .data-section .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            margin-bottom: 24px;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--medical-border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+        }
+        
+        th {
+            background: var(--medical-bg);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--medical-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--medical-border);
+            color: var(--text-primary);
+            font-size: 0.9375rem;
+        }
+        
+        tr {
+            transition: background-color 0.1s ease;
+        }
+        
+        tr:hover {
+            background-color: var(--medical-blue-light);
+        }
+        
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-normal {
+            background: var(--medical-green-gradient);
+            color: var(--white);
+        }
+        
+        .status-elevated {
+            background: var(--medical-orange-gradient);
+            color: var(--white);
+        }
+        
+        .status-hypertension {
+            background: var(--medical-red-gradient);
+            color: var(--white);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--medical-blue);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .refresh-indicator {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: var(--white);
+            padding: 12px 20px;
+            border-radius: 30px;
+            box-shadow: var(--card-shadow-elevated);
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            z-index: 1000;
+            border: 1px solid var(--medical-border);
+            font-weight: 600;
+        }
+        
+        .refresh-indicator.success {
+            color: var(--medical-green);
+            border-left: 3px solid var(--medical-green);
+        }
+        
+        .refresh-indicator.error {
+            color: var(--medical-red);
+            border-left: 3px solid var(--medical-red);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state p {
+            font-size: 1rem;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Désactiver les animations pour meilleure performance */
+        .stat-card,
+        .data-section {
+            animation: none;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                padding: 32px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="width: 200px;"></div>
+            <div class="header-content">
+                <h1>Système de Surveillance des Données de Pression Artérielle</h1>
+            </div>
+            <div class="user-info">
+                <a href="/predictions" class="btn-logout" style="background: var(--medical-purple-gradient);">Prédictions ML</a>
+                {% if user %}
+                <span class="user-email">{{ user.email }}</span>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn-logout">Déconnexion</a>
+            </div>
+        </header>
+        
+        <div class="refresh-indicator" id="refresh-status">
+            Actualisation...
+        </div>
+        
+        <div class="filters-section">
+            <h2>Filtres de Recherche</h2>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="patient-filter">Patient ID</label>
+                    <select id="patient-filter">
+                        <option value="">Tous les patients</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="date-from">Date de début</label>
+                    <input type="datetime-local" id="date-from" />
+                </div>
+                <div class="filter-group">
+                    <label for="date-to">Date de fin</label>
+                    <input type="datetime-local" id="date-to" />
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="applyFilters()">Appliquer les filtres</button>
+                <button class="btn btn-secondary" onclick="clearFilters()">Réinitialiser</button>
+            </div>
+        </div>
+        
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card total">
+                <h3>Total des Mesures</h3>
+                <div class="value" id="total-readings">0</div>
+            </div>
+            <div class="stat-card avg">
+                <h3>Pression Systolique Moyenne</h3>
+                <div class="value" id="avg-systolic">0</div>
+                <div class="unit">mmHg</div>
+            </div>
+            <div class="stat-card avg">
+                <h3>Pression Diastolique Moyenne</h3>
+                <div class="value" id="avg-diastolic">0</div>
+                <div class="unit">mmHg</div>
+            </div>
+            <div class="stat-card avg">
+                <h3>Rythme Cardiaque Moyen</h3>
+                <div class="value" id="avg-heart-rate">0</div>
+                <div class="unit">bpm</div>
+            </div>
+            <div class="stat-card normal">
+                <h3>Mesures Normales</h3>
+                <div class="value" id="normal-count">0</div>
+            </div>
+            <div class="stat-card hypertension">
+                <h3>Hypertension</h3>
+                <div class="value" id="hypertension-count">0</div>
+            </div>
+        </div>
+        
+        <div class="data-section">
+            <h2>Données en Temps Réel</h2>
+            <p class="subtitle">Dernières 10 mesures reçues en temps réel</p>
+            <div class="table-container">
+                <div id="realtime-data">
+                    <div class="loading">Chargement des données...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-section">
+            <h2>Historique des Données</h2>
+            <p class="subtitle">Historique complet des mesures sauvegardées dans le système</p>
+            <div class="table-container">
+                <div id="history-data">
+                    <div class="loading">Chargement des données...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let allPatients = [];
+        
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('fr-FR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        function getStatusClass(status) {
+            if (!status) return 'status-normal';
+            const upperStatus = status.toUpperCase();
+            if (upperStatus === 'NORMAL') return 'status-normal';
+            if (upperStatus === 'ELEVATED') return 'status-elevated';
+            if (upperStatus === 'STAGE1_HYPERTENSION') return 'status-hypertension';
+            if (upperStatus === 'STAGE2_HYPERTENSION') return 'status-hypertension';
+            if (upperStatus === 'HYPERTENSIVE_CRISIS') return 'status-hypertension';
+            return 'status-normal';
+        }
+        
+        function getStatusText(status) {
+            if (!status) return 'N/A';
+            const upperStatus = status.toUpperCase();
+            const statusMap = {
+                'NORMAL': 'Normal',
+                'ELEVATED': 'Élevée',
+                'STAGE1_HYPERTENSION': 'Hypertension Stade 1',
+                'STAGE2_HYPERTENSION': 'Hypertension Stade 2',
+                'HYPERTENSIVE_CRISIS': 'Crise Hypertensive'
+            };
+            return statusMap[upperStatus] || status;
+        }
+        
+        function updateStatistics(stats) {
+            document.getElementById('total-readings').textContent = stats.total_readings || 0;
+            document.getElementById('avg-systolic').textContent = Math.round(stats.avg_systolic || 0);
+            document.getElementById('avg-diastolic').textContent = Math.round(stats.avg_diastolic || 0);
+            document.getElementById('avg-heart-rate').textContent = Math.round(stats.avg_heart_rate || 0);
+            document.getElementById('normal-count').textContent = stats.normal_count || 0;
+            document.getElementById('hypertension-count').textContent = stats.hypertension_count || 0;
+        }
+        
+        function renderTable(data, containerId) {
+            const container = document.getElementById(containerId);
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>Aucune donnée disponible</p></div>';
+                return;
+            }
+            
+            // Limiter à 30 lignes maximum pour les performances
+            const maxRows = 30;
+            const limitedData = data.slice().reverse().slice(0, maxRows);
+            
+            // Utiliser DocumentFragment pour un rendu plus rapide
+            const fragment = document.createDocumentFragment();
+            const table = document.createElement('table');
+            
+            // Créer le header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            ['Timestamp', 'Patient ID', 'Systolique', 'Diastolique', 'Rythme Cardiaque', 'Statut', 'Device ID'].forEach(text => {
+                const th = document.createElement('th');
+                th.textContent = text;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Créer le tbody
+            const tbody = document.createElement('tbody');
+            limitedData.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                const cells = [
+                    formatTimestamp(item.timestamp),
+                    item.patient_id,
+                    item.systolic,
+                    item.diastolic,
+                    item.heart_rate,
+                    '',
+                    item.device_id
+                ];
+                
+                cells.forEach((text, index) => {
+                    const td = document.createElement('td');
+                    if (index === 5) {
+                        // Cellule pour le statut avec badge
+                        const badge = document.createElement('span');
+                        badge.className = `status-badge ${getStatusClass(item.status)}`;
+                        badge.textContent = getStatusText(item.status);
+                        td.appendChild(badge);
+                    } else {
+                        td.textContent = text;
+                    }
+                    tr.appendChild(td);
+                });
+                
+                tbody.appendChild(tr);
+            });
+            
+            table.appendChild(tbody);
+            fragment.appendChild(table);
+            
+            // Remplacer le contenu en une seule opération
+            container.innerHTML = '';
+            container.appendChild(fragment);
+        }
+        
+        function updatePatientFilter(patients) {
+            const select = document.getElementById('patient-filter');
+            const currentValue = select.value;
+            
+            // Garder "Tous les patients" et ajouter les patients uniques
+            select.innerHTML = '<option value="">Tous les patients</option>';
+            
+            patients.forEach(patient => {
+                if (patient) {
+                    const option = document.createElement('option');
+                    option.value = patient;
+                    option.textContent = patient;
+                    select.appendChild(option);
+                }
+            });
+            
+            // Restaurer la sélection précédente si elle existe toujours
+            if (currentValue && patients.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+        
+        function getFilterParams() {
+            const patientId = document.getElementById('patient-filter').value;
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+            
+            const params = new URLSearchParams();
+            if (patientId) params.append('patient_id', patientId);
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            
+            return params.toString();
+        }
+        
+        function applyFilters() {
+            fetchData();
+        }
+        
+        function clearFilters() {
+            document.getElementById('patient-filter').value = '';
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+            fetchData();
+        }
+        
+        async function fetchData() {
+            try {
+                const filterParams = getFilterParams();
+                const url = filterParams ? `/api/data?${filterParams}` : '/api/data';
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Mettre à jour la liste des patients
+                if (data.all_patients) {
+                    allPatients = data.all_patients;
+                    updatePatientFilter(allPatients);
+                }
+                
+                updateStatistics(data.statistics);
+                
+                // Afficher les données en temps réel
+                if (data.realtime_data && data.realtime_data.length > 0) {
+                    renderTable(data.realtime_data, 'realtime-data');
+                } else {
+                    document.getElementById('realtime-data').innerHTML = '<div class="empty-state"><p>Aucune donnée en temps réel disponible</p></div>';
+                }
+                
+                // Afficher l'historique
+                if (data.file_data && data.file_data.length > 0) {
+                    renderTable(data.file_data, 'history-data');
+                } else {
+                    document.getElementById('history-data').innerHTML = '<div class="empty-state"><p>Aucune donnée historique disponible</p></div>';
+                }
+                
+                const statusEl = document.getElementById('refresh-status');
+                statusEl.textContent = 'Dernière mise à jour: ' + new Date().toLocaleTimeString('fr-FR');
+                statusEl.className = 'refresh-indicator success';
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données:', error);
+                const statusEl = document.getElementById('refresh-status');
+                statusEl.textContent = 'Erreur de connexion';
+                statusEl.className = 'refresh-indicator error';
+            }
+        }
+        
+        // Charger les données initiales
+        fetchData();
+        
+        // Actualiser toutes les 5 secondes (réduire la fréquence pour performance)
+        let isUpdating = false;
+        setInterval(() => {
+            if (!isUpdating) {
+                isUpdating = true;
+                fetchData().finally(() => {
+                    setTimeout(() => { isUpdating = false; }, 1000);
+                });
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
