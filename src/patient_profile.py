@@ -122,10 +122,10 @@ class PatientProfile:
         if self.active_stress_event:
             current_systolic += random.uniform(15, 25)
             current_diastolic += random.uniform(10, 18)
-            self.stress_event_remaining -= 1
+            self.stress_event_remaining -= 1 # stress events -1  
             if self.stress_event_remaining <= 0:
                 self.active_stress_event = False
-        else:
+        else: # no stress event mais but we estimate its probability 
             # Random chance of stress event
             # Higher probability for patients with high baseline BP
             stress_probability = 0.075  # Default 7.5%
@@ -134,7 +134,7 @@ class PatientProfile:
             elif self.baseline_systolic > 140:
                 stress_probability = 0.10  # 10% for medium-risk patients
             
-            if random.random() < stress_probability:
+            if random.random() < stress_probability: #active stress event
                 self.active_stress_event = True
                 # Longer stress events for high-risk patients
                 if self.baseline_systolic > 150:

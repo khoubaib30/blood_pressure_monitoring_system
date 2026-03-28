@@ -169,19 +169,19 @@ def analyze_data(extracted_data):
     
     # Alertes basées sur la catégorie
     if category == BloodPressureCategory.HYPERTENSIVE_CRISIS:
-        alerts.append("🚨 CRITIQUE: Crise hypertensive - Consultation médicale immédiate requise!")
+        alerts.append(" CRITIQUE: Crise hypertensive - Consultation médicale immédiate requise!")
     elif category == BloodPressureCategory.STAGE2_HYPERTENSION:
-        alerts.append("⚠️  ALERTE: Hypertension Stade 2 détectée")
+        alerts.append("  ALERTE: Hypertension Stade 2 détectée")
     elif category == BloodPressureCategory.STAGE1_HYPERTENSION:
-        alerts.append("⚠️  ATTENTION: Hypertension Stade 1 détectée")
+        alerts.append("  ATTENTION: Hypertension Stade 1 détectée")
     elif category == BloodPressureCategory.ELEVATED:
-        alerts.append("ℹ️  INFORMATION: Pression artérielle élevée")
+        alerts.append(" INFORMATION: Pression artérielle élevée")
     
     # Alertes sur le rythme cardiaque
     if heart_rate > 100:
-        alerts.append("⚠️  ALERTE: Tachycardie détectée (rythme > 100 bpm)")
+        alerts.append("  ALERTE: Tachycardie détectée (rythme > 100 bpm)")
     elif heart_rate < 60:
-        alerts.append("⚠️  ALERTE: Bradycardie détectée (rythme < 60 bpm)")
+        alerts.append("  ALERTE: Bradycardie détectée (rythme < 60 bpm)")
     
     return alerts
 

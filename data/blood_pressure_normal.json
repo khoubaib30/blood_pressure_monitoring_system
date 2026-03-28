@@ -15988,5 +15988,105 @@
     "heart_rate": 73,
     "category": "NORMAL",
     "device_id": "DEVICE_5"
+  },
+  {
+    "observation_id": "b881ff7c-243b-4abd-b74b-2d4adb758449",
+    "timestamp": "2026-03-02T22:10:10.714810",
+    "patient_id": "PATIENT_0003",
+    "systolic": 106,
+    "diastolic": 58,
+    "heart_rate": 64,
+    "category": "NORMAL",
+    "device_id": "DEVICE_9"
+  },
+  {
+    "observation_id": "d1cec903-63c3-4522-abf8-6fa32b62e17e",
+    "timestamp": "2026-03-02T22:11:40.759675",
+    "patient_id": "PATIENT_0006",
+    "systolic": 104,
+    "diastolic": 68,
+    "heart_rate": 65,
+    "category": "NORMAL",
+    "device_id": "DEVICE_7"
+  },
+  {
+    "observation_id": "ea6b0142-5f12-4223-a790-d8044df03789",
+    "timestamp": "2026-03-02T22:13:40.853323",
+    "patient_id": "PATIENT_0010",
+    "systolic": 103,
+    "diastolic": 70,
+    "heart_rate": 67,
+    "category": "NORMAL",
+    "device_id": "DEVICE_6"
+  },
+  {
+    "observation_id": "2dacfd3d-7fe1-4276-9500-130613e46df2",
+    "timestamp": "2026-03-02T22:15:10.916139",
+    "patient_id": "PATIENT_0013",
+    "systolic": 91,
+    "diastolic": 52,
+    "heart_rate": 65,
+    "category": "NORMAL",
+    "device_id": "DEVICE_3"
+  },
+  {
+    "observation_id": "6c79b373-3efc-4b28-9794-d4ef0400d448",
+    "timestamp": "2026-03-02T22:18:41.096877",
+    "patient_id": "PATIENT_0020",
+    "systolic": 101,
+    "diastolic": 62,
+    "heart_rate": 61,
+    "category": "NORMAL",
+    "device_id": "DEVICE_4"
+  },
+  {
+    "observation_id": "3dcbc494-8a5f-4317-8eac-ee6fb21b5e84",
+    "timestamp": "2026-03-02T22:21:11.199715",
+    "patient_id": "PATIENT_0025",
+    "systolic": 98,
+    "diastolic": 70,
+    "heart_rate": 69,
+    "category": "NORMAL",
+    "device_id": "DEVICE_9"
+  },
+  {
+    "observation_id": "3e338acd-68f6-46b4-96a3-2e27fa44b6e5",
+    "timestamp": "2026-03-02T22:21:41.232470",
+    "patient_id": "PATIENT_0026",
+    "systolic": 94,
+    "diastolic": 64,
+    "heart_rate": 69,
+    "category": "NORMAL",
+    "device_id": "DEVICE_1"
+  },
+  {
+    "observation_id": "e425ade4-1180-446c-b7ca-cf4a1f9dd3e2",
+    "timestamp": "2026-03-02T22:22:41.282980",
+    "patient_id": "PATIENT_0028",
+    "systolic": 103,
+    "diastolic": 59,
+    "heart_rate": 74,
+    "category": "NORMAL",
+    "device_id": "DEVICE_10"
+  },
+  {
+    "observation_id": "1dda96f2-3ae5-463d-8cc7-93b40551d0d1",
+    "timestamp": "2026-03-28T01:31:37.139611",
+    "patient_id": "PATIENT_0002",
+    "systolic": 117,
+    "diastolic": 73,
+    "heart_rate": 87,
+    "category": "NORMAL",
+    "device_id": "DEVICE_4"
+  },
+  {
+    "observation_id": "a70e70fa-2afd-464b-98c5-74f4543e5128",
+    "timestamp": "2026-03-28T01:32:07.181674",
+    "patient_id": "PATIENT_0003",
+    "systolic": 100,
+    "diastolic": 58,
+    "heart_rate": 72,
+    "category": "NORMAL",
+    "device_id": "DEVICE_3"
   }
 ]
