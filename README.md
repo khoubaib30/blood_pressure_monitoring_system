@@ -271,8 +271,8 @@ Le système est composé de plusieurs couches interconnectées :
 
 1. **Cloner le dépôt** :
 ```bash
-git clone <URL_DU_REPO>
-cd DS_projet
+git clone https://github.com/khoubaib30/blood_pressure_monitoring_system.git
+cd blood_pressure_monitoring_system
 ```
 
 2. **Créer le fichier d'environnement** :
@@ -284,7 +284,13 @@ Copy-Item env.example .env
 cp env.example .env
 ```
 
-3. **Démarrer tous les services** :
+3. **Créer les comptes de démonstration du dashboard** (le mot de passe est demandé au lancement) :
+```bash
+python create_users.py
+```
+Cela crée `data/users.json` (ignoré par Git) avec deux comptes : `admin@example.com` et `user@example.com`.
+
+4. **Démarrer tous les services** :
 ```bash
 # Avec rebuild des images
 docker compose up -d --build
@@ -293,7 +299,7 @@ docker compose up -d --build
 docker compose up -d
 ```
 
-4. **Accéder aux interfaces** :
+5. **Accéder aux interfaces** :
    - **Dashboard Flask** : http://localhost:5000
    - **Kibana** : http://localhost:5601
    - **Elasticsearch** : http://localhost:9200
