@@ -46,3 +46,6 @@ Thumbs.db
 
 # Docker local overrides
 docker-compose.override.yml
+
+# Comptes du dashboard (générés par create_users.py)
+data/users.json

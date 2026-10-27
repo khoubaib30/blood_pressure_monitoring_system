@@ -15,7 +15,7 @@ Ce projet est une plateforme complète de surveillance médicale qui :
 ### Fonctionnalités Principales
 
 - **Dashboard Web Flask** : Interface de monitoring avec authentification
-- **Prédictions ML en Temps Réel** : Modèle XGBoost pour prédire les risques (choisi pour ses meilleures métriques par rapport à Random Forest)
+- **Prédictions ML en Temps Réel** : Modèle XGBoost pour prédire les risques (légèrement meilleur que Random Forest, voir [Évaluation du modèle](#évaluation-du-modèle))
 - **Système d'Alertes** : Niveaux d'alerte basés sur la probabilité de crise (CRITICAL, HIGH, MEDIUM, LOW)
 - **Visualisation Kibana** : Dashboards pour l'analyse des tendances et patterns
 - **Streaming Kafka** : Ingestion de données en temps réel
@@ -213,7 +213,7 @@ Le système est composé de plusieurs couches interconnectées :
   - Les deux modèles prédisent 3 valeurs : critical_risk_1h, critical_risk_6h, critical_risk_24h
 
 - **ML Inference** (`ml_inference.py`) : Module de prédiction en temps réel
-  - Utilise le modèle **XGBoost** (choisi après comparaison avec Random Forest pour ses meilleures métriques)
+  - Utilise le modèle **XGBoost** (retenu après comparaison avec Random Forest, voir [Évaluation du modèle](#évaluation-du-modèle))
   - Charge le modèle entraîné depuis `models/xgboost_regression.pkl`
   - Récupère les 30 dernières observations d'un patient
   - Prépare les features (même format que l'entraînement)
@@ -271,8 +271,8 @@ Le système est composé de plusieurs couches interconnectées :
 
 1. **Cloner le dépôt** :
 ```bash
-git clone <URL_DU_REPO>
-cd DS_projet
+git clone https://github.com/khoubaib30/blood_pressure_monitoring_system.git
+cd blood_pressure_monitoring_system
 ```
 
 2. **Créer le fichier d'environnement** :
@@ -284,7 +284,13 @@ Copy-Item env.example .env
 cp env.example .env
 ```
 
-3. **Démarrer tous les services** :
+3. **Créer les comptes de démonstration du dashboard** (le mot de passe est demandé au lancement) :
+```bash
+python create_users.py
+```
+Cela crée `data/users.json` (ignoré par Git) avec deux comptes : `admin@example.com` et `user@example.com`.
+
+4. **Démarrer tous les services** :
 ```bash
 # Avec rebuild des images
 docker compose up -d --build
@@ -293,7 +299,7 @@ docker compose up -d --build
 docker compose up -d
 ```
 
-4. **Accéder aux interfaces** :
+5. **Accéder aux interfaces** :
    - **Dashboard Flask** : http://localhost:5000
    - **Kibana** : http://localhost:5601
    - **Elasticsearch** : http://localhost:9200
@@ -315,6 +321,7 @@ DS_projet/
 │   ├── ml_inference.py          # Prédictions ML en temps réel
 │   ├── ml_train_xgboost.py      # Entraînement modèle XGBoost
 │   ├── ml_train_random_forest.py # Entraînement modèle Random Forest
+│   ├── ml_evaluate_baselines.py # Évaluation : XGBoost vs baselines (validation croisée)
 │   ├── ml_data_generator.py     # Génération de données d'entraînement
 │   ├── patient_profile.py       # Profils de patients simulés
 │   ├── elasticsearch_connector.py # Connexion Elasticsearch
@@ -370,5 +377,33 @@ Le système prédit pour chaque patient :
 - **XGBoost** : Gradient Boosting optimisé (modèle utilisé en production)
 - **Random Forest** : Ensemble de décisions trees (modèle d'entraînement pour comparaison)
 
-**Note** : Après comparaison des métriques (MAE, RMSE, R²), XGBoost a montré de meilleures performances que Random Forest et est donc utilisé pour les prédictions en temps réel dans le dashboard.
+**Note** : XGBoost et Random Forest obtiennent des performances très proches. XGBoost est retenu pour les prédictions en temps réel car il est légèrement meilleur sur les trois horizons.
+
+## Évaluation du modèle
+
+Le modèle est évalué en **validation croisée à 5 plis** sur les 5 000 séquences d'entraînement. Chaque séquence correspond à un patient différent, le découpage se fait donc par patient. XGBoost est comparé à deux baselines :
+
+- **Moyenne** : prédit toujours le risque moyen observé à l'entraînement (aucun modèle) ;
+- **Linéaire sur les dernières mesures** : régression linéaire sur la dernière mesure et la moyenne des 5 dernières mesures (pression systolique et diastolique).
+
+| Modèle | MAE 1 h | MAE 6 h | MAE 24 h | R² (1 h / 6 h / 24 h) |
+|---|---|---|---|---|
+| Moyenne (sans modèle) | 0.165 | 0.193 | 0.223 | 0.00 / 0.00 / 0.00 |
+| Linéaire sur les dernières mesures | 0.093 | 0.108 | 0.117 | 0.60 / 0.67 / 0.71 |
+| Random Forest | 0.050 | 0.054 | 0.061 | 0.80 / 0.84 / 0.86 |
+| **XGBoost** | **0.050** | **0.053** | **0.059** | **0.81 / 0.86 / 0.87** |
+
+**Résultat :** XGBoost réduit l'erreur (MAE) de **46 % à 1 h** et d'environ **50 % à 6 h et 24 h** par rapport à la baseline linéaire. Le modèle exploite donc la tendance des 30 dernières mesures, et pas seulement la dernière valeur.
+
+Pour reproduire ces résultats :
+
+```bash
+python src/ml_evaluate_baselines.py
+```
+
+### Limites
+
+- **Données synthétiques.** Les séquences sont générées par un simulateur de patients (pression de base, tendance, rythme circadien, bruit). La cible correspond à la proportion de mesures futures au-dessus du seuil de crise (180/120 mmHg).
+- **Biais de génération.** La cible est ensuite ajustée selon le profil de risque du patient (faible, moyen, élevé), qui détermine aussi sa pression de base. Le modèle apprend donc en partie la règle de simulation : les scores obtenus sont une borne haute, pas une performance clinique. C'est pour cette raison que le modèle est comparé à des baselines plutôt que jugé sur son R² seul.
+- **Sur des données réelles**, il faudrait valider avec un découpage par patient et dans le temps, et vérifier la calibration des probabilités avant tout usage clinique.
 
